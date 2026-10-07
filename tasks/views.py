@@ -35,13 +35,23 @@ class DoneTaskView(LoginRequiredMixin, UpdateView):
 
     def post(self, request, *args, **kwargs):
         task = self.get_object()
-        task.status = True
+        task.status = not task.status
         task.save()
         return redirect(self.success_url)
 
 
 class DeleteTaskView(LoginRequiredMixin, DeleteView):
     model = Task
+    success_url = '/task_list/'
+
+    def get_queryset(self):
+        return Task.objects.filter(author=self.request.user)
+    
+    
+class EditTaskView(LoginRequiredMixin, UpdateView):
+    model = Task
+    form_class = TaskForm
+    template_name = 'edit_task.html'
     success_url = '/task_list/'
 
     def get_queryset(self):

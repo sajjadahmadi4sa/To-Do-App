@@ -226,7 +226,9 @@
                     🗑
                 </button>
             </form>
-           
+           <form method="get" action="{% url 'tasks:edit_task' task.pk %}">
+                <button type="submit">✏️</button>
+           </form>
         </div>
 
     </div>
