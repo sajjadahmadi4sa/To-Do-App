@@ -22,6 +22,7 @@ from django.contrib.auth.views import LoginView
 from accounts.views import RegisterView
 
 
+
 urlpatterns = [
 
     path('admin/', admin.site.urls),
@@ -32,7 +33,8 @@ urlpatterns = [
     # Django authentication URLs
     path('accounts/', include('django.contrib.auth.urls')),
     path('register/', RegisterView.as_view(), name='register'),
-]
+    
+] 
 
 
 

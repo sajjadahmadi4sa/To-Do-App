@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'tasks','accounts',
+    'tasks','accounts','rest_framework',
+
 ]
 
 MIDDLEWARE = [
@@ -133,3 +134,5 @@ AUTH_USER_MODEL = 'accounts.User'
 LOGIN_URL = '/'
 LOGIN_REDIRECT_URL = '/task_list/'
 LOGOUT_REDIRECT_URL = '/'
+
+
