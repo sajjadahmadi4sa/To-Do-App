@@ -33,6 +33,7 @@ urlpatterns = [
     # Django authentication URLs
     path('accounts/', include('django.contrib.auth.urls')),
     path('register/', RegisterView.as_view(), name='register'),
+    path('api-auth/', include('rest_framework.urls')),
     
 ] 
 
