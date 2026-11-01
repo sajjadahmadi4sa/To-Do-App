@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'tasks','accounts','rest_framework',
     'django_filters',
 
+    'tasks','accounts','drf_yasg',
 ]
 
 MIDDLEWARE = [

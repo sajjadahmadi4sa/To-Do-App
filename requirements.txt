@@ -3,3 +3,4 @@ python-decouple==3.8
 Pillow
 django-filter
 djangorestframework==3.18.1
+drf-yasg[validation]
