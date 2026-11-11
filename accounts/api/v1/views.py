@@ -2,7 +2,8 @@
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import RegistrationSerializer , ChangePasswordSerializer,CustomTokenObtainPairSerializer,CustomAuthTokenSerializer,ActivationResendSerializer
+from .serializers import (RegistrationSerializer , ChangePasswordSerializer,CustomTokenObtainPairSerializer,
+CustomAuthTokenSerializer,ActivationResendSerializer,ResetPasswordEmailSerializer,ResetPasswordSerializer)
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
@@ -12,15 +13,19 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from mail_templated import EmailMessage
 from ..utils import EmailThread
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-    TokenVerifyView,)
+from rest_framework_simplejwt.views import (TokenObtainPairView,TokenRefreshView,TokenVerifyView,)
 from rest_framework_simplejwt.tokens import RefreshToken
 import jwt
 from jwt.exceptions import InvalidSignatureError , ExpiredSignatureError
 from django.conf import settings
 from django.core.mail import send_mail
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils.http import (urlsafe_base64_encode,urlsafe_base64_decode)
+from django.utils.encoding import force_bytes, force_str
+from rest_framework.permissions import AllowAny
+from rest_framework.exceptions import ValidationError
+
+
 
 User = get_user_model()
 
@@ -83,6 +88,61 @@ class ChangePasswordApiView(generics.GenericAPIView):
             return Response({'details':'password changed successfully'},status=status.HTTP_200_OK)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     
+    
+class ChangePasswordApiView(generics.GenericAPIView):
+    model = User
+    permission_classes = [IsAuthenticated]
+    serializer_class = ChangePasswordSerializer
+    def get_object(self, queryset=None):
+        obj = self.request.user
+        return obj
+    def put(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        serializer = self.get_serializer(data = request.data)
+        if serializer.is_valid():
+            if not self.object.check_password(serializer.data.get("old_password")):
+                return Response({"old_password": ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
+            self.object.set_password(serializer.data.get("new_password"))
+            self.object.save()
+            return Response({'details':'password changed successfully'},status=status.HTTP_200_OK)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    
+class ResetPasswordEmailApiView(generics.GenericAPIView):
+    serializer_class = ResetPasswordEmailSerializer
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+        user_obj = User.objects.filter(email=email,is_active=True, is_verified=True).first()
+        if user_obj:
+            uid = urlsafe_base64_encode(force_bytes(user_obj.pk))
+            token = PasswordResetTokenGenerator().make_token(user_obj)
+            email_obj = EmailMessage('email/reset_password.tpl',{'uid': uid,'token': token,},'admin@admin.com',to=[user_obj.email])
+            EmailThread(email_obj).start()
+        return Response({'details': 'If an active verified account exists with this email, a password reset link will be sent.'},status=status.HTTP_200_OK)
+    
+
+class ResetPasswordApiView(generics.GenericAPIView):
+    serializer_class = ResetPasswordSerializer
+    permission_classes = [AllowAny]
+    def post(self, request, uidb64, token, *args, **kwargs):
+        try:
+            user_id = force_str(urlsafe_base64_decode(uidb64))
+            user_obj = User.objects.get(pk=user_id)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            raise ValidationError({'details': 'Invalid reset link.'})
+        token_generator = PasswordResetTokenGenerator()
+        if not token_generator.check_token(user_obj, token):
+            raise ValidationError({'details': 'Reset link is invalid or expired.'})
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user_obj.set_password(serializer.validated_data['password'])
+        user_obj.save(update_fields=['password'])
+        return Response({'details': 'Your password has been reset successfully.'},status=status.HTTP_200_OK)
+
+
     
 class SendEmail(generics.GenericAPIView):
 

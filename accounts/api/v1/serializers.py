@@ -5,6 +5,8 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from ...models import User
+from rest_framework import serializers
+from django.contrib.auth.password_validation import validate_password
 
 
 
@@ -73,6 +75,18 @@ class ChangePasswordSerializer(serializers.Serializer):
         except exceptions.ValidationError as e:
             raise serializers.ValidationError({'new_password': list(e.messages)})
         return super().validate(attrs)
+
+class ResetPasswordEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    password = serializers.CharField(write_only=True,validators=[validate_password])
+    password2 = serializers.CharField(write_only=True)
+    def validate(self, attrs):
+        if attrs['password'] != attrs['password2']:
+            raise serializers.ValidationError({'password2': 'Passwords do not match.'})
+        return attrs
     
 
 class ActivationResendSerializer(serializers.Serializer):
