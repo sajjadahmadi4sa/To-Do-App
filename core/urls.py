@@ -41,18 +41,27 @@ schema_view = get_schema_view(
 
 
 urlpatterns = [
-
     path('admin/', admin.site.urls),
-    # Login page
-    path('',LoginView.as_view(template_name='registration/login.html',redirect_authenticated_user=True),name='login'),
+
+    # Login
+    path('', LoginView.as_view(template_name='registration/login.html',redirect_authenticated_user=True), name='login'),
+
     # Tasks
     path('', include('tasks.urls')),
-    # Django authentication URLs
-    path('accounts/', include('django.contrib.auth.urls')),
-    path('register/', RegisterView.as_view(), name='register'),
-    path('api-auth/', include('rest_framework.urls')),
-    
 
+    # Django Authentication
+    path('accounts/', include('django.contrib.auth.urls')),
+
+    # Registration
+    path('register/', RegisterView.as_view(), name='register'),
+
+    # DRF Authentication
+    path('api-auth/', include('rest_framework.urls')),
+
+    # Custom Accounts APIs
+    path('accounts/', include('accounts.urls')),
+
+    # Swagger
     path('swagger/output.json', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),

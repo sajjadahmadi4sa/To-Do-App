@@ -8,6 +8,7 @@ from .paginations import DefaultPagination
 
 
 
+
 class TaskViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = TaskSerializer
