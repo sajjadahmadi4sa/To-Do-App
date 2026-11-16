@@ -6,3 +6,5 @@ djangorestframework==3.18.1
 drf-yasg[validation]
 djangorestframework-simplejwt
 django-mail-templated
+pytest
+pytest-django
