@@ -8,3 +8,4 @@ djangorestframework-simplejwt
 django-mail-templated
 pytest
 pytest-django
+flake8
