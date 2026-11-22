@@ -9,3 +9,4 @@ django-mail-templated
 pytest
 pytest-django
 flake8
+faker
